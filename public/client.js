@@ -246,6 +246,8 @@ function renderGamePlayers(players) {
       `;
       gamePlayers.appendChild(li);
     });
+  // Keep mobile player list in sync
+  if (typeof renderMobilePlayers === 'function') renderMobilePlayers(players);
 }
 
 
@@ -511,6 +513,7 @@ function pickColor(c) {
   // Auto-switch from eraser back to brush when a colour is chosen
   if (G.tool === 'eraser') setTool('brush');
   refreshBrushDot();
+  if (typeof refreshMobileBrushDot === 'function') refreshMobileBrushDot();
 }
 
 customColor.addEventListener('input', () => pickColor(customColor.value));
@@ -553,6 +556,7 @@ function setTool(name) {
     name === 'eraser' ? 'cell'      :
     name === 'fill'   ? 'copy'      : 'crosshair';
   refreshBrushDot();
+  if (typeof syncMobileToolBtns === 'function') syncMobileToolBtns();
 }
 
 Object.entries(TOOL_MAP).forEach(([name, btn]) =>
@@ -947,16 +951,183 @@ function esc(str) {
 }
 
 
+
+
+// ═══════════════════════════════════════════════════════════
+//  MOBILE TOOLBAR
+// ═══════════════════════════════════════════════════════════
+
+const mobileToolbar   = $('mobile-toolbar');
+const mobColorGrid    = $('mob-color-grid');
+const mobCustomColor  = $('mob-custom-color');
+const mobBrushSize    = $('mob-brush-size');
+const mobBrushDot     = $('mob-brush-dot');
+const mobGamePlayers  = $('mob-game-players');
+
+const MOB_TOOL_MAP = {
+  brush:  $('mob-btn-brush'),
+  eraser: $('mob-btn-eraser'),
+  fill:   $('mob-btn-fill'),
+};
+
+function isMobile() { return window.innerWidth <= 720; }
+
+function showMobileToolbar(show) {
+  if (!mobileToolbar) return;
+  mobileToolbar.style.display = show ? 'flex' : 'none';
+}
+
+// Build the mobile colour palette (same colours, different grid layout)
+function buildMobilePalette() {
+  if (!mobColorGrid) return;
+  mobColorGrid.innerHTML = '';
+  PALETTE.forEach(c => {
+    const sw = document.createElement('div');
+    sw.className        = 'c-swatch' + (c === G.color ? ' active' : '');
+    sw.style.background = c;
+    sw.dataset.c        = c;
+    sw.addEventListener('click', () => {
+      pickColor(c);
+      syncMobilePalette();
+    });
+    mobColorGrid.appendChild(sw);
+  });
+}
+
+function syncMobilePalette() {
+  if (!mobColorGrid) return;
+  mobColorGrid.querySelectorAll('.c-swatch').forEach(s =>
+    s.classList.toggle('active', s.dataset.c === G.color)
+  );
+  if (mobCustomColor) mobCustomColor.value = G.color;
+  refreshMobileBrushDot();
+}
+
+function refreshMobileBrushDot() {
+  if (!mobBrushDot) return;
+  const d = Math.max(4, Math.min(G.brushSize * 1.4, 48));
+  mobBrushDot.style.width      = `${d}px`;
+  mobBrushDot.style.height     = `${d}px`;
+  mobBrushDot.style.background = G.tool === 'eraser' ? '#888888' : G.color;
+}
+
+function syncMobileToolBtns() {
+  Object.entries(MOB_TOOL_MAP).forEach(([k, b]) => {
+    if (b) b.classList.toggle('active', k === G.tool);
+  });
+}
+
+// Sync the mobile players list (horizontal scroll row)
+function renderMobilePlayers(players) {
+  if (!mobGamePlayers) return;
+  mobGamePlayers.innerHTML = '';
+  [...players]
+    .sort((a, b) => b.score - a.score)
+    .forEach(p => {
+      const you = p.id === G.playerId;
+      const li  = document.createElement('li');
+      li.className = `p-row${you ? ' is-you' : ''}`;
+      li.innerHTML = `
+        <div class="p-avatar-sm" style="background:${avatarColor(p.username)}">
+          ${esc(p.username[0].toUpperCase())}
+        </div>
+        <div class="p-info">
+          <div class="p-name">${esc(p.username)}${you ? ' 👤' : ''}</div>
+          <div class="p-score">⭐ ${p.score} pts</div>
+        </div>
+      `;
+      mobGamePlayers.appendChild(li);
+    });
+}
+
+// Tab switching
+document.querySelectorAll('.mob-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.mob-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const name = tab.dataset.tab;
+    ['colors','brush','tools','players'].forEach(p => {
+      const el = $(`mob-panel-${p}`);
+      if (el) el.style.display = (p === name) ? 'flex' : 'none';
+    });
+  });
+});
+
+// Mobile custom colour picker
+if (mobCustomColor) {
+  mobCustomColor.addEventListener('input', () => {
+    pickColor(mobCustomColor.value);
+    syncMobilePalette();
+  });
+}
+
+// Mobile brush size
+if (mobBrushSize) {
+  mobBrushSize.addEventListener('input', () => {
+    G.brushSize = Number(mobBrushSize.value);
+    brushSize.value = mobBrushSize.value; // keep desktop slider in sync
+    refreshBrushDot();
+    refreshMobileBrushDot();
+  });
+}
+
+// Keep desktop brush slider synced → mobile
+brushSize.addEventListener('input', () => {
+  if (mobBrushSize) mobBrushSize.value = brushSize.value;
+  refreshMobileBrushDot();
+});
+
+// Mobile tool buttons
+Object.entries(MOB_TOOL_MAP).forEach(([name, btn]) => {
+  if (btn) btn.addEventListener('click', () => {
+    setTool(name);
+    syncMobileToolBtns();
+    syncMobilePalette();
+  });
+});
+
+// Mobile undo / clear
+const mobBtnUndo  = $('mob-btn-undo');
+const mobBtnClear = $('mob-btn-clear');
+if (mobBtnUndo)  mobBtnUndo.addEventListener('click',  () => btnUndo.click());
+if (mobBtnClear) mobBtnClear.addEventListener('click', () => btnClear.click());
+
+// Show/hide toolbar when entering/leaving game screen
+// We override showScreen here so mobile toolbar syncs automatically
+const _showScreenOrig = showScreen;
+showScreen = function(name) {
+  _showScreenOrig(name);
+  showMobileToolbar(name === 'game' && isMobile());
+};
+
+// Re-check on resize in case orientation changes
+window.addEventListener('resize', () => {
+  const onGame = scrGame.classList.contains('active');
+  showMobileToolbar(onGame && isMobile());
+  refreshBrushDot();
+  refreshMobileBrushDot();
+});
+
+// Sync mobile player list whenever the desktop one is rendered
+// We hook into G.players directly via a helper called after renderGamePlayers
+function _syncMobileAfterRender(players) {
+  renderMobilePlayers(players);
+}
+
+
 // ═══════════════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════════════
 
 (function init() {
   buildPalette();
+  buildMobilePalette();
   initCanvas();
   resizeCanvas();
   setTool('brush');
   refreshBrushDot();
+  refreshMobileBrushDot();
   showScreen('lobby');
+  showMobileToolbar(false); // hidden until game screen
   console.log('🎨 SpeedDraw client ready');
 })();

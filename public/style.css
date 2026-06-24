@@ -1127,8 +1127,18 @@ html, body {
 }
 
 @media (max-width: 720px) {
-  .tool-panel, .players-panel { display: none; }
+  /* Hide desktop sidebars — mobile toolbar takes over */
+  .tool-panel, .players-panel { display: none !important; }
   .gh-left .logo-sm { display: none; }
+
+  /* Canvas area takes the full vertical space above toolbar */
+  #screen-game {
+    padding-bottom: var(--mob-toolbar-h);
+  }
+  .canvas-area {
+    /* fill remaining height minus header and toolbar */
+    height: calc(100vh - var(--header-h) - var(--mob-toolbar-h));
+  }
 }
 
 @media (max-width: 480px) {
@@ -1136,3 +1146,148 @@ html, body {
   .word-pill   { padding: 6px 12px; }
   .room-pill   { display: none; }
 }
+
+/* ══════════════════════════════════════════════════════════
+   MOBILE BOTTOM TOOLBAR
+══════════════════════════════════════════════════════════ */
+:root {
+  --mob-toolbar-h: 160px;
+}
+
+.mobile-toolbar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: var(--mob-toolbar-h);
+  background: var(--bg-surface);
+  border-top: 1px solid var(--b2);
+  display: flex;
+  flex-direction: column;
+  z-index: 30;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
+}
+
+/* Tab strip */
+.mob-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--b1);
+  flex-shrink: 0;
+}
+
+.mob-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--t3);
+  font-family: var(--f-body);
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 7px 2px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+}
+.mob-tab.active {
+  color: var(--cyan);
+  background: rgba(0,229,255,0.07);
+  border-bottom: 2px solid var(--cyan);
+}
+
+/* Panels */
+.mob-panel {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+}
+
+/* Color grid */
+.mob-color-grid {
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+  gap: 4px;
+  flex: 1;
+}
+.mob-color-grid .c-swatch {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.12s, border-color 0.12s;
+}
+.mob-color-grid .c-swatch:active { transform: scale(0.9); }
+.mob-color-grid .c-swatch.active {
+  border-color: #fff;
+  box-shadow: 0 0 6px rgba(255,255,255,0.55);
+}
+
+.mob-custom-picker {
+  width: 36px;
+  height: 36px;
+  padding: 2px;
+  border: 1px solid var(--b1);
+  border-radius: var(--r-sm);
+  background: var(--bg-card);
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+.mob-custom-picker::-webkit-color-swatch-wrapper { padding: 0; }
+.mob-custom-picker::-webkit-color-swatch { border: none; border-radius: 3px; }
+
+/* Brush panel */
+.mob-brush-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+.mob-brush-preview {
+  width: 52px; height: 52px;
+  background: var(--bg-card);
+  border: 1px solid var(--b1);
+  border-radius: var(--r-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.mob-range { flex: 1; }
+
+/* Tools panel */
+.mob-tool-btns {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+.mob-tool-btns .tool-btn {
+  flex-shrink: 0;
+  padding: 9px 14px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+/* Players panel */
+.mob-player-list {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+}
+.mob-player-list .p-row {
+  flex-shrink: 0;
+  min-width: 120px;
+}
+
+/* Keep toolbar hidden on desktop */
+@media (min-width: 721px) {
+  .mobile-toolbar { display: none !important; }
+}
+

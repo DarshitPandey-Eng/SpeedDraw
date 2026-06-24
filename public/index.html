@@ -249,6 +249,50 @@
     </div>
   </div>
 
+  <!-- ══════════════════════════════════════════════════════════
+       MOBILE BOTTOM TOOLBAR  (visible only on small screens)
+  ══════════════════════════════════════════════════════════ -->
+  <div id="mobile-toolbar" class="mobile-toolbar" style="display:none">
+
+    <!-- Tab bar -->
+    <div class="mob-tabs">
+      <button class="mob-tab active" data-tab="colors">🎨 Colors</button>
+      <button class="mob-tab" data-tab="brush">🖌 Brush</button>
+      <button class="mob-tab" data-tab="tools">🛠 Tools</button>
+      <button class="mob-tab" data-tab="players">👥 Players</button>
+    </div>
+
+    <!-- Panels -->
+    <div class="mob-panel" id="mob-panel-colors">
+      <div id="mob-color-grid" class="mob-color-grid"></div>
+      <input id="mob-custom-color" type="color" value="#000000" class="mob-custom-picker" title="Custom colour" />
+    </div>
+
+    <div class="mob-panel" id="mob-panel-brush" style="display:none">
+      <div class="mob-brush-row">
+        <div class="mob-brush-preview">
+          <div id="mob-brush-dot" class="brush-dot"></div>
+        </div>
+        <input id="mob-brush-size" type="range" min="2" max="60" value="10" class="range-slider mob-range" />
+      </div>
+    </div>
+
+    <div class="mob-panel" id="mob-panel-tools" style="display:none">
+      <div class="mob-tool-btns">
+        <button id="mob-btn-brush"  class="tool-btn active" data-tool="brush">✏️ Brush</button>
+        <button id="mob-btn-eraser" class="tool-btn"        data-tool="eraser">🧹 Eraser</button>
+        <button id="mob-btn-fill"   class="tool-btn"        data-tool="fill">🪣 Fill</button>
+        <button id="mob-btn-undo"   class="tool-btn">↩ Undo</button>
+        <button id="mob-btn-clear"  class="tool-btn" style="color:var(--pink);border-color:rgba(255,45,122,0.3)">🗑 Clear</button>
+      </div>
+    </div>
+
+    <div class="mob-panel" id="mob-panel-players" style="display:none">
+      <ul id="mob-game-players" class="player-list mob-player-list"></ul>
+    </div>
+
+  </div>
+
 </div><!-- /screen-game -->
 
 <!-- Toast container (appended by JS) -->
