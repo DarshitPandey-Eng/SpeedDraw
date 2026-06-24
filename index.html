@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⚡ SpeedDraw</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 1 — LOBBY
+     Username entry + Create / Join room
+══════════════════════════════════════════════════════════ -->
+<div id="screen-lobby" class="screen active">
+  <div class="lobby-bg-glow"></div>
+
+  <div class="lobby-wrap">
+
+    <!-- Logo -->
+    <header class="lobby-logo">
+      <div class="logo-icon">🎨</div>
+      <h1>SpeedDraw</h1>
+      <p>Draw fast. Vote faster.</p>
+    </header>
+
+    <!-- Card -->
+    <div class="lobby-card">
+      <h2>Pick a username</h2>
+
+      <div class="field-group">
+        <span class="field-icon">👤</span>
+        <input id="inp-username" type="text" placeholder="Cool Artist Name…"
+               maxlength="20" autocomplete="off" spellcheck="false" />
+      </div>
+
+      <div class="lobby-actions">
+        <button id="btn-create" class="btn btn-green">🏠 Create Room</button>
+        <button id="btn-toggle-join" class="btn btn-ghost">🔗 Join Room</button>
+      </div>
+
+      <!-- Join sub-panel (hidden by default) -->
+      <div id="join-panel" class="join-panel" aria-hidden="true">
+        <div class="field-group">
+          <span class="field-icon">🔑</span>
+          <input id="inp-room-code" type="text" placeholder="ROOM CODE"
+                 maxlength="5" autocomplete="off" spellcheck="false" />
+        </div>
+        <button id="btn-join" class="btn btn-cyan w-full">Join →</button>
+      </div>
+
+      <div id="lobby-error" class="error-banner" aria-live="polite"></div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 2 — WAITING ROOM
+     Shows connected players; host can start
+══════════════════════════════════════════════════════════ -->
+<div id="screen-waiting" class="screen">
+
+  <div class="waiting-wrap">
+
+    <div class="waiting-header">
+      <h2>Waiting Room</h2>
+      <div class="code-badge">
+        <span class="code-label">Room Code</span>
+        <code id="disp-code">-----</code>
+        <button id="btn-copy" class="icon-btn" title="Copy code">📋</button>
+      </div>
+    </div>
+
+    <!-- Player grid -->
+    <div id="waiting-grid" class="waiting-grid"></div>
+
+    <div class="waiting-footer">
+      <p id="waiting-msg" class="waiting-msg">Waiting for players…</p>
+      <button id="btn-start" class="btn btn-green btn-xl" style="display:none">
+        🚀 Start Game
+      </button>
+      <p id="host-hint" class="host-hint" style="display:none">
+        👑 You're the host — start when ready!
+      </p>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 3 — GAME
+     Header / Tool panel / Canvas / Player list
+══════════════════════════════════════════════════════════ -->
+<div id="screen-game" class="screen">
+
+  <!-- ── Top bar ─────────────────────────────────────────── -->
+  <header class="game-header">
+
+    <div class="gh-left">
+      <span class="logo-sm">⚡ SpeedDraw</span>
+      <span id="gh-room-code" class="room-pill">ROOM: -----</span>
+    </div>
+
+    <div class="gh-center">
+      <div class="word-pill">
+        <span class="word-pill-label">Draw:</span>
+        <span id="word-display">Get ready…</span>
+      </div>
+    </div>
+
+    <div class="gh-right">
+      <div class="timer-box" id="timer-box">
+        <span class="timer-icon">⏱</span>
+        <span class="timer-val" id="timer-val">3:00</span>
+        <div class="timer-track">
+          <div class="timer-fill" id="timer-fill"></div>
+        </div>
+      </div>
+    </div>
+
+  </header>
+
+  <!-- ── Main area ────────────────────────────────────────── -->
+  <main class="game-main">
+
+    <!-- Left: Tool panel -->
+    <aside class="tool-panel" id="tool-panel">
+
+      <section class="tool-section">
+        <label class="tool-label">🎨 Colors</label>
+        <div id="color-grid" class="color-grid"></div>
+        <input id="custom-color" type="color" value="#000000"
+               class="custom-picker" title="Custom colour" />
+      </section>
+
+      <section class="tool-section">
+        <label class="tool-label">🖌 Brush Size</label>
+        <div class="brush-preview-area">
+          <div id="brush-dot" class="brush-dot"></div>
+        </div>
+        <input id="brush-size" type="range" min="2" max="60" value="10" class="range-slider" />
+        <div class="range-labels"><span>Fine</span><span>Thick</span></div>
+      </section>
+
+      <section class="tool-section">
+        <label class="tool-label">🛠 Tools</label>
+        <div class="tool-btns">
+          <button id="btn-tool-brush"  class="tool-btn active" data-tool="brush">✏️ Brush</button>
+          <button id="btn-tool-eraser" class="tool-btn"        data-tool="eraser">🧹 Eraser</button>
+          <button id="btn-tool-fill"   class="tool-btn"        data-tool="fill">🪣 Fill</button>
+        </div>
+      </section>
+
+      <section class="tool-section tool-section--actions">
+        <button id="btn-undo"  class="btn btn-ghost w-full">↩ Undo</button>
+        <button id="btn-clear" class="btn btn-danger w-full">🗑 Clear</button>
+      </section>
+
+    </aside>
+
+    <!-- Center: Canvas -->
+    <section class="canvas-area">
+      <div class="canvas-wrap" id="canvas-wrap">
+        <canvas id="canvas"></canvas>
+        <!-- Lock overlay shown when drawing is disabled -->
+        <div id="canvas-lock" class="canvas-lock" aria-hidden="true" style="display:none">
+          <span>Drawing locked</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right: Player list -->
+    <aside class="players-panel">
+      <h3 class="panel-heading">👥 Players</h3>
+      <ul id="game-players" class="player-list"></ul>
+    </aside>
+
+  </main>
+
+  <!-- ══════════════════════════════════════════════════════
+       PHASE OVERLAYS  (sit on top of game screen)
+  ══════════════════════════════════════════════════════ -->
+
+  <!-- ── Prompt reveal ─── -->
+  <div id="ov-prompt" class="overlay" aria-hidden="true" style="display:none">
+    <div class="ov-card ov-prompt-card">
+      <div class="ov-emoji">🎯</div>
+      <p class="ov-subtitle">Your word is…</p>
+      <div id="ov-word" class="ov-word"></div>
+      <div class="ov-countdown-row">
+        <div class="bounce-dots">
+          <span></span><span></span><span></span>
+        </div>
+        <p>Drawing starts in <strong id="ov-prompt-secs">6</strong>s</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Voting ─── -->
+  <div id="ov-voting" class="overlay" aria-hidden="true" style="display:none">
+    <div class="ov-card ov-voting-card">
+      <div class="voting-head">
+        <h2>🗳 Rate this drawing!</h2>
+        <div class="voting-meta">
+          <span id="vt-artist">Artist: ???</span>
+          <span id="vt-progress">1 / 4</span>
+        </div>
+        <p class="voting-word">Word was: <strong id="vt-word">???</strong></p>
+      </div>
+
+      <div class="voting-img-wrap">
+        <img id="vt-img" src="" alt="Drawing to rate" />
+      </div>
+
+      <!-- Stars -->
+      <div class="stars" id="stars" role="group" aria-label="Star rating">
+        <button class="star" data-v="1" aria-label="1 star">⭐</button>
+        <button class="star" data-v="2" aria-label="2 stars">⭐</button>
+        <button class="star" data-v="3" aria-label="3 stars">⭐</button>
+        <button class="star" data-v="4" aria-label="4 stars">⭐</button>
+        <button class="star" data-v="5" aria-label="5 stars">⭐</button>
+      </div>
+
+      <p id="vt-status" class="vt-status">Cast your vote!</p>
+
+      <div class="vote-track">
+        <div class="vote-fill" id="vote-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Leaderboard ─── -->
+  <div id="ov-leaderboard" class="overlay" aria-hidden="true" style="display:none">
+    <div class="ov-card ov-lb-card">
+      <h2>🏆 Round Results</h2>
+      <p class="lb-word">The word was: <strong id="lb-word">???</strong></p>
+
+      <ol id="lb-list" class="lb-list"></ol>
+
+      <div id="lb-gallery" class="lb-gallery"></div>
+
+      <p class="lb-restart">Next round in <strong id="lb-secs">12</strong>s…</p>
+    </div>
+  </div>
+
+</div><!-- /screen-game -->
+
+<!-- Toast container (appended by JS) -->
+<div id="toasts" aria-live="polite"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="client.js"></script>
+</body>
+</html>
